@@ -486,6 +486,16 @@ const WS_RE = /\s/;
  */
 function inline(s, link) {
   const n = s.length;
+  // A text with none of the trigger characters renders as itself: every character would take the ordinary
+  // path and be appended unchanged, so the whole walk is skipped when the scan finds no trigger.
+  let plain = true;
+  for (let j = 0; j < n; j++) {
+    if (INLINE_TRIGGER[s.charCodeAt(j)]) {
+      plain = false;
+      break;
+    }
+  }
+  if (plain) return s;
   let out = '';
   let i = 0;
   while (i < n) {
