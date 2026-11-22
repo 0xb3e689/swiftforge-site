@@ -586,7 +586,7 @@ function wordsOf(text) {
 function renderMarkdown(src, link, slugOf) {
   const lines = src.split('\n');
   const n = lines.length;
-  const blocks = [];
+  let out = '';
   const toc = [];
   const ids = new Set();
   let excerpt = null;
@@ -613,7 +613,9 @@ function renderMarkdown(src, link, slugOf) {
         }
         i++;
         const cls = lang === '' ? '' : ` class="language-${lang}"`;
-        blocks.push(`<pre><code${cls}>${body}</code></pre>`);
+        out += `<pre><code${cls}>${body}</code></pre>
+`
+        ;
         continue;
       }
     } else if (c0 === 35) {
@@ -621,7 +623,9 @@ function renderMarkdown(src, link, slugOf) {
       if (heading !== null) {
         const id = uniqueSlug(slugOf(heading.text), ids);
         const html = inline(heading.text, link);
-        blocks.push(`<h${heading.depth} id="${id}">${html}</h${heading.depth}>`);
+        out += `<h${heading.depth} id="${id}">${html}</h${heading.depth}>
+`
+        ;
         if (heading.depth === 2 || heading.depth === 3) toc.push({ level: heading.depth, id, html });
         i++;
         continue;
@@ -636,11 +640,13 @@ function renderMarkdown(src, link, slugOf) {
       }
       let body = '';
       for (const q of qlines) if (q !== '') body = body === '' ? q : `${body}\n${q}`;
-      blocks.push(body === '' ? '<blockquote>\n</blockquote>' : `<blockquote>\n<p>${inline(body, link)}</p>\n</blockquote>`);
+      out += body === '' ? '<blockquote>\n</blockquote>\n' : `<blockquote>\n<p>${inline(body, link)}</p>\n</blockquote>\n`
+      ;
       continue;
     } else if (c0 === 45 || c0 === 42) {
       if (isHr(line)) {
-        blocks.push('<hr>');
+        out += '<hr>\n'
+        ;
         i++;
         continue;
       }
@@ -660,7 +666,8 @@ function renderMarkdown(src, link, slugOf) {
         }
         let body = '';
         for (const item of items) body += `<li>${inline(item, link)}</li>\n`;
-        blocks.push(`<ul>\n${body}</ul>`);
+        out += `<ul>\n${body}</ul>\n`
+        ;
         continue;
       }
     } else if (c0 >= 48 && c0 <= 57) {
@@ -685,7 +692,8 @@ function renderMarkdown(src, link, slugOf) {
         const open = orderStart !== 1 ? `<ol start="${orderStart}">` : '<ol>';
         let body = '';
         for (const item of items) body += `<li>${inline(item, link)}</li>\n`;
-        blocks.push(`${open}\n${body}</ol>`);
+        out += `${open}\n${body}</ol>\n`
+        ;
         continue;
       }
     }
@@ -698,9 +706,10 @@ function renderMarkdown(src, link, slugOf) {
     }
     const html = inline(text, link);
     if (excerpt === null) excerpt = html;
-    blocks.push(`<p>${html}</p>`);
+    out += `<p>${html}</p>\n`
+    ;
   }
-  return { html: blocks.length === 0 ? '' : `${blocks.join('\n')}\n`, toc, excerpt: excerpt === null ? '' : excerpt };
+  return { html: out, toc, excerpt: excerpt === null ? '' : excerpt };
 }
 
 // ---------------------------------------------------------------- templates (README, "Templates")

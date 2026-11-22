@@ -7,8 +7,11 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { setFlagsFromString } from 'node:v8';
 
 // V8's incremental marking off before solve.js is imported, so all of its work runs under it (the house
-// baseline runs with --no-incremental-marking; an entry may tune V8's flags the same way).
+// baseline runs with --no-incremental-marking; an entry may tune V8's flags the same way). GC kept off the
+// background threads too: on the one-CPU sandbox the concurrent threads only add thread overhead that the
+// CPU-time metric counts.
 setFlagsFromString('--no-incremental-marking');
+setFlagsFromString('--single-threaded-gc');
 
 /** solve.js, imported by its URL (a .js module carries no types). */
 const { run } = (await import(new URL('./solve.js', import.meta.url).href)) as { run: (input: unknown) => unknown };
